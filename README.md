@@ -2,7 +2,7 @@
 
 > **Basé sur le plugin de** : *Zerox_Hue*  
 > **Refactorisé par** : *Robocnop*  
-> **Objectif** : Faire fonctionner HueConnect avec les versions actuelles de NovaLife.
+> **Objectif** : Faire fonctionner HueConnect avec les versions actuelles de NovaLife et le rendre plus léger en taille.
 
 ---
 
