@@ -1,6 +1,6 @@
 # 📗 **HueConnectRefactored** v1.0.0
 
-> **Basé sur** : *Zero_Hue*  
+> **Basé sur** : *Zerox_Hue*  
 > **Refactorisé par** : *Robocnop*  
 > **Objectif** : Faire fonctionner HueConnect avec les versions actuelles de NovaLife et le rendre plus léger que l'originale.
 
