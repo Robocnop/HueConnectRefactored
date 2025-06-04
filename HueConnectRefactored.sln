@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HueConnectRefactored", "HueConnectRefactored\HueConnectRefactored.csproj", "{FC8EB3E9-3220-40C5-9D7E-A51E386EF733}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC8EB3E9-3220-40C5-9D7E-A51E386EF733}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC8EB3E9-3220-40C5-9D7E-A51E386EF733}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC8EB3E9-3220-40C5-9D7E-A51E386EF733}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC8EB3E9-3220-40C5-9D7E-A51E386EF733}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {86B51ACE-299F-477B-8A98-74394EDE2DAD}
+	EndGlobalSection
+EndGlobal
