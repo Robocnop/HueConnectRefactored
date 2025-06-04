@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Config.cs
+using System;
 using System.IO;
 using Newtonsoft.Json;
 
