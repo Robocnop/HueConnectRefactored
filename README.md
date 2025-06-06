@@ -1,3 +1,5 @@
+![GitHub all releases](https://img.shields.io/github/downloads/Robocnop/HueConnectRefactored/total)
+
 # 📗 **HueConnectRefactored** v1.0.0
 
 > **Basé sur le plugin de** : *Zerox_Hue*  
