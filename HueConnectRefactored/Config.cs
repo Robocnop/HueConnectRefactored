@@ -1,5 +1,4 @@
-﻿// Config.cs
-using System;
+﻿using System;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -16,7 +15,7 @@ namespace HueConnectRefactored
             {
                 var defaultConfig = new Config
                 {
-                    LoginWebhookUrl = ""  // À renseigner manuellement après premier lancement
+                    LoginWebhookUrl = ""
                 };
                 Directory.CreateDirectory(pluginFolder);
                 File.WriteAllText(configPath, JsonConvert.SerializeObject(defaultConfig, Formatting.Indented));

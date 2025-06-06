@@ -1,13 +1,10 @@
-﻿// HueConnectRefactored.cs
-using System;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
 using Mirror;
 using ModKit.Helper;
 using ModKit.Helper.DiscordHelper;
 using ModKit.Interfaces;
 using ModKit.Internal;
-using Newtonsoft.Json;
 using Life;
 using Life.DB;
 using Life.Network;
@@ -41,9 +38,12 @@ namespace HueConnectRefactored
 
             
             string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-           
-            string pluginFolder = Path.Combine(assemblyDir, GetAssemblyName());
-            _config = Config.Load(pluginFolder);
+
+            if (assemblyDir != null)
+            {
+                string pluginFolder = Path.Combine(assemblyDir, GetAssemblyName());
+                _config = Config.Load(pluginFolder);
+            }
 
             if (!string.IsNullOrEmpty(_config.LoginWebhookUrl))
             {
@@ -64,12 +64,12 @@ namespace HueConnectRefactored
         {
             _menu.AddAdminTabLine(PluginInformations, 1, "HueConnectRefactored", ui =>
             {
-                Player player = PanelHelper.ReturnPlayerFromPanel(ui);
+                PanelHelper.ReturnPlayerFromPanel(ui);
             });
 
             _menu.AddAdminPluginTabLine(PluginInformations, 1, "HueConnectRefactored", ui =>
             {
-                Player player = PanelHelper.ReturnPlayerFromPanel(ui);
+                PanelHelper.ReturnPlayerFromPanel(ui);
             }, 0);
         }
 
@@ -90,13 +90,11 @@ namespace HueConnectRefactored
                     $"{mk.Color("[INFORMATION]", mk.Colors.Info)} HueConnectRefactored est actif sur ce serveur."
                 );
             }
-
-            // Annonce en jeu uniquement aux admins pour chaque connexion
+            
             Nova.server.SendMessageToAdmins(
-                $"<color=#ADADAD>[Serveur]</color> Le joueur <color=#85E085>{player.GetFullName()}</color> vient de se connecter."
+                $"<color=#ADADAD>[Serveur]</color> Le joueur <color=#85E085>{player.FullName}</color> vient de se connecter."
             );
 
-            // Si l'adminLevel > 0, on précise le niveau d'admin
             if (player.account != null && player.account.adminLevel > 0)
             {
                 Nova.server.SendMessageToAdmins(
@@ -112,7 +110,7 @@ namespace HueConnectRefactored
 
                 string title = "🔔 Nouvelle connexion";
                 string description =
-                    $"**Nom complet :** {player.GetFullName()}\n" +
+                    $"**Nom complet :** {player.FullName}\n" +
                     (player.account != null && player.account.adminLevel > 0
                         ? $"**Admin lvl :** {player.account.adminLevel}\n"
                         : "") +
@@ -122,10 +120,6 @@ namespace HueConnectRefactored
                 var fieldNames = new System.Collections.Generic.List<string>();
                 var fieldValues = new System.Collections.Generic.List<string>();
 
-                bool inlineFields = false;
-                bool showFooter = false;
-                string footerText = "";
-
                 DiscordHelper.SendEmbed(
                     _webhookClient,
                     colorHex,
@@ -133,9 +127,9 @@ namespace HueConnectRefactored
                     description,
                     fieldNames,
                     fieldValues,
-                    inlineFields,
-                    showFooter,
-                    footerText
+                    false,
+                    false,
+                    ""
                 );
             }
         }
