@@ -22,7 +22,7 @@ namespace HueConnectRefactored
         {
             PluginInformations = new PluginInformations(
                 AssemblyHelper.GetName(),
-                "1.0.0",
+                "1.0.1",
                 "Zerox_Hue (Originally), refactored by Robocnop"
             );
         }
@@ -76,6 +76,8 @@ namespace HueConnectRefactored
         public override void OnPlayerSpawnCharacter(Player player, NetworkConnection conn, Characters character)
         {
             base.OnPlayerSpawnCharacter(player, conn, character);
+            
+            if (player is null) return; 
 
             if (player.steamId.ToString() == "76561197971784899")
             {
