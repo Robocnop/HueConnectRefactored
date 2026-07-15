@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/license-GNU%20GPL%20v3-red.svg)
 ![GitHub all releases](https://img.shields.io/github/downloads/Robocnop/HueConnectRefactored/total)
 
-# 📗 **HueConnectRefactored** v1.0.0
+# 📗 **HueConnectRefactored** v1.0.1
 
 > **Basé sur le plugin de** : *Zerox_Hue*  
 > **Refactorisé par** : *Robocnop*  
