@@ -1,13 +1,13 @@
-﻿using System.IO;
-using System.Reflection;
-using Mirror;
-using ModKit.Helper;
-using ModKit.Helper.DiscordHelper;
-using ModKit.Interfaces;
-using ModKit.Internal;
+using System;
+using System.Collections.Concurrent;
+using System.IO;
 using Life;
 using Life.DB;
 using Life.Network;
+using Mirror;
+using ModKit.Helper;
+using ModKit.Interfaces;
+using ModKit.Internal;
 using mk = ModKit.Helper.TextFormattingHelper;
 using _menu = AAMenu.Menu;
 
@@ -15,130 +15,72 @@ namespace HueConnectRefactored
 {
     public class HueConnectRefactored : ModKit.ModKit
     {
+        private const string Version = "1.1.0";
+        private const ulong AuthorSteamId = 76561197971784899;
+
+        private readonly ConcurrentDictionary<int, byte> _announced = new ConcurrentDictionary<int, byte>();
         private Config _config;
-        private DiscordWebhookClient _webhookClient;
+        private DiscordLogger _discord;
 
         public HueConnectRefactored(IGameAPI api) : base(api)
         {
-            PluginInformations = new PluginInformations(
-                AssemblyHelper.GetName(),
-                "1.0.1",
-                "Zerox_Hue (Originally), refactored by Robocnop"
-            );
+            PluginInformations = new PluginInformations(AssemblyHelper.GetName(), Version, "Zerox_Hue (Originally), refactored by Robocnop");
         }
 
         public override void OnPluginInit()
         {
             base.OnPluginInit();
+            Logger.LogSuccess("HueConnect - Demarrage", $"v{Version} initialise");
 
-            Logger.LogSuccess(
-                $"{PluginInformations.SourceName} v{PluginInformations.Version}",
-                "initialisé"
-            );
+            _config = Config.Load(Path.Combine(pluginsPath, AssemblyHelper.GetName()), Version);
+            _discord = new DiscordLogger(_config.LoginWebhookUrl, Version);
 
-            
-            string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            if (!_discord.IsConfigured)
+                Logger.LogWarning("HueConnect - Config", "Aucun LoginWebhookUrl configure, les logs Discord sont desactives.");
 
-            if (assemblyDir != null)
-            {
-                string pluginFolder = Path.Combine(assemblyDir, GetAssemblyName());
-                _config = Config.Load(pluginFolder);
-            }
+            if (_config.CheckForUpdates)
+                _ = UpdateChecker.CheckAsync(Version);
 
-            if (!string.IsNullOrEmpty(_config.LoginWebhookUrl))
-            {
-                _webhookClient = new DiscordWebhookClient(_config.LoginWebhookUrl);
-            }
-            else
-            {
-                Logger.LogWarning(
-                    "HueConnectRefactored",
-                    "Aucun LoginWebhookUrl configuré pour envoyer les notifications Discord."
-                );
-            }
-
-            InsertMenu();
+            _menu.AddAdminTabLine(PluginInformations, 1, "HueConnectRefactored", ui => PanelHelper.ReturnPlayerFromPanel(ui));
+            _menu.AddAdminPluginTabLine(PluginInformations, 1, "HueConnectRefactored", ui => PanelHelper.ReturnPlayerFromPanel(ui), 0);
         }
 
-        public void InsertMenu()
-        {
-            _menu.AddAdminTabLine(PluginInformations, 1, "HueConnectRefactored", ui =>
-            {
-                PanelHelper.ReturnPlayerFromPanel(ui);
-            });
-
-            _menu.AddAdminPluginTabLine(PluginInformations, 1, "HueConnectRefactored", ui =>
-            {
-                PanelHelper.ReturnPlayerFromPanel(ui);
-            }, 0);
-        }
-
-        public override void OnPlayerSpawnCharacter(Player player, NetworkConnection conn, Characters character)
+        public override async void OnPlayerSpawnCharacter(Player player, NetworkConnection conn, Characters character)
         {
             base.OnPlayerSpawnCharacter(player, conn, character);
-            
-            if (player is null) return; 
 
-            if (player.steamId.ToString() == "76561197971784899")
+            try
             {
-                player.Notify(
-                    $"{mk.Color("INFORMATION", mk.Colors.Info)}",
-                    "HueConnectRefactored est actif sur ce serveur.",
-                    NotificationManager.Type.Info,
-                    15f
-                );
+                // Appele aussi a chaque respawn : on n'annonce qu'une fois par connexion
+                int? id = player?.setup?.character?.Id;
+                if (id == null || !_announced.TryAdd(id.Value, 0)) return;
 
-                player.SendText(
-                    $"{mk.Color("[INFORMATION]", mk.Colors.Info)} HueConnectRefactored est actif sur ce serveur."
-                );
+                if (player.steamId == AuthorSteamId)
+                {
+                    player.Notify(mk.Color("INFORMATION", mk.Colors.Info), "HueConnectRefactored est actif sur ce serveur.", NotificationManager.Type.Info, 15f);
+                    player.SendText($"{mk.Color("[INFORMATION]", mk.Colors.Info)} HueConnectRefactored est actif sur ce serveur.");
+                }
+
+                Nova.server.SendMessageToAdmins($"<color=#ADADAD>[Serveur]</color> Le joueur <color=#85E085>{player.FullName}</color> vient de se connecter.");
+
+                if (player.account?.adminLevel > 0)
+                    Nova.server.SendMessageToAdmins($"<color=#FF0202>[Serveur]</color> L'admin <color=#DD4B4E>{player.account.username}</color> (lvl {player.account.adminLevel}) vient de se connecter.");
+
+                await _discord.LogConnection(player);
             }
-            
-            Nova.server.SendMessageToAdmins(
-                $"<color=#ADADAD>[Serveur]</color> Le joueur <color=#85E085>{player.FullName}</color> vient de se connecter."
-            );
-
-            if (player.account != null && player.account.adminLevel > 0)
+            catch (Exception ex)
             {
-                Nova.server.SendMessageToAdmins(
-                    $"<color=#FF0202>[Serveur]</color> L'admin <color=#DD4B4E>{player.account.username}</color> (lvl {player.account.adminLevel}) vient de se connecter."
-                );
-            }
-
-            if (_webhookClient != null)
-            {
-                string colorHex = (player.account != null && player.account.adminLevel > 0)
-                    ? "#DD4B4E"
-                    : "#85E085";
-
-                string title = "🔔 Nouvelle connexion";
-                string description =
-                    $"**Nom complet :** {player.FullName}\n" +
-                    (player.account != null && player.account.adminLevel > 0
-                        ? $"**Admin lvl :** {player.account.adminLevel}\n"
-                        : "") +
-                    $"**Nom Steam :** {player.steamUsername}\n" +
-                    $"**ID Steam :** {player.steamId}";
-
-                var fieldNames = new System.Collections.Generic.List<string>();
-                var fieldValues = new System.Collections.Generic.List<string>();
-
-                DiscordHelper.SendEmbed(
-                    _webhookClient,
-                    colorHex,
-                    title,
-                    description,
-                    fieldNames,
-                    fieldValues,
-                    false,
-                    false,
-                    ""
-                );
+                Logger.LogError("HueConnect - OnPlayerSpawnCharacter", ex.Message);
             }
         }
 
-        private static string GetAssemblyName()
+        public override void OnPlayerDisconnect(NetworkConnection conn)
         {
-            return Assembly.GetCallingAssembly().GetName().Name;
+            base.OnPlayerDisconnect(conn);
+
+            int? id = Nova.server.GetPlayer(conn)?.setup?.character?.Id;
+            if (id != null)
+                _announced.TryRemove(id.Value, out _);
         }
     }
 }

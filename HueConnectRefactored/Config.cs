@@ -1,26 +1,53 @@
-﻿using System;
+using System;
 using System.IO;
+using ModKit.Internal;
 using Newtonsoft.Json;
 
 namespace HueConnectRefactored
 {
     public class Config
     {
-        public string LoginWebhookUrl { get; set; }
+        public string ConfigVersion { get; set; } = "";
+        public string LoginWebhookUrl { get; set; } = "";
+        public bool CheckForUpdates { get; set; } = true;
 
-        public static Config Load(string pluginFolder)
+        public static Config Load(string pluginFolder, string pluginVersion)
         {
-            string configPath = Path.Combine(pluginFolder, "config.json");
-            if (!File.Exists(configPath))
+            string path = Path.Combine(pluginFolder, "config.json");
+            Config config = new Config();
+
+            try
             {
-                var defaultConfig = new Config
-                {
-                    LoginWebhookUrl = ""
-                };
                 Directory.CreateDirectory(pluginFolder);
-                File.WriteAllText(configPath, JsonConvert.SerializeObject(defaultConfig, Formatting.Indented));
+
+                if (File.Exists(path))
+                {
+                    JsonConvert.PopulateObject(File.ReadAllText(path), config);
+
+                    if (config.ConfigVersion != pluginVersion)
+                    {
+                        string oldVersion = string.IsNullOrEmpty(config.ConfigVersion) ? "inconnue" : config.ConfigVersion;
+                        Logger.LogWarning("HueConnect - Config", $"Config mise a jour : {oldVersion} -> {pluginVersion} (valeurs conservees).");
+                    }
+                    else
+                    {
+                        Logger.LogSuccess("HueConnect - Config", "Configuration chargee");
+                    }
+                }
+                else
+                {
+                    Logger.LogWarning("HueConnect - Config", "Fichier config.json cree ! Configurez le webhook Discord.");
+                }
+
+                config.ConfigVersion = pluginVersion;
+                File.WriteAllText(path, JsonConvert.SerializeObject(config, Formatting.Indented));
             }
-            return JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+            catch (Exception ex)
+            {
+                Logger.LogError("HueConnect - Config", ex.Message);
+            }
+
+            return config;
         }
     }
 }
